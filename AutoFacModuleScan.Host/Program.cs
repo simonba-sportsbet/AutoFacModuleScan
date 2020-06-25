@@ -11,11 +11,16 @@ namespace AutoFacModuleScan.Host
         static async Task Main(string[] args)
         {
             var loggerFactory = LoggerFactory.Create(b => b
+                .ClearProviders()
+                .SetMinimumLevel(LogLevel.Trace)
                 .AddDebug()
-                .AddConsole());
+                .AddConsole(c =>
+                {
+                    c.TimestampFormat = "HH:mm:ss.fff ";
+                    c.IncludeScopes = true;
+                }));
 
             var iocCont = ConfigureIoC(loggerFactory);
-
 
             var logger = iocCont.Resolve<ILogger<Program>>();
 
@@ -38,7 +43,12 @@ namespace AutoFacModuleScan.Host
             builder.RegisterInstance(loggerFactory);
             builder.RegisterGeneric(typeof(Logger<>)).As(typeof(ILogger<>));
 
-            builder.ScanForModulesInBaseFolder();
+            // Option 1 - Dynamically Scan 
+            // builder.ScanForModulesInBaseFolder();
+
+            // Option 2 (& 3) explicitly add modules (for 3 module is in Host Project)
+            builder.RegisterModule<AutoFacModuleScan.Host.ConfigModule>();
+            builder.RegisterModule<AutoFacModuleScan.Domain.ConfigModule>();
 
             return builder.Build();
         }

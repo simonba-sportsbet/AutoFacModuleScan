@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace AutoFacModuleScan.Domain
 {
-    public class TestDomSvc : ITestDomSvc
+    public class TestDomSvc : ITestDomSvc, IDisposable //, IAsyncDisposable
     {
         private readonly ITimeProvider _timeProvider;
         private readonly ILogger _logger;
@@ -18,6 +18,17 @@ namespace AutoFacModuleScan.Domain
             _timeProvider = timeProvider;
             _logger = logger;
         }
+
+        public void Dispose()
+        {
+            _logger.LogDebug("Cleaning up...");
+        }
+
+        //public ValueTask DisposeAsync()
+        //{
+        //    _logger.LogDebug("Cleaning up... async");
+        //    return new ValueTask(Task.CompletedTask);
+        //}
 
         public async Task Run(string[] args)
         {

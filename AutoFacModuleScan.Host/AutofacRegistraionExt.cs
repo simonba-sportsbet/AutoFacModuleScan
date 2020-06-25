@@ -1,19 +1,26 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using Autofac;
 
 namespace AutoFacModuleScan.Host
 {
     public static class AutofacRegistraionExt
     {
-        public static ContainerBuilder ScanForModulesInBaseFolder(this ContainerBuilder builder)
+        public static readonly string[] DefaultAssemblyFileExtensions = new[] { "dll", "exe" };
+
+        public static ContainerBuilder ScanForModulesInBaseFolder(
+            this ContainerBuilder builder, 
+            string[] assemblyFileExtensions = null, 
+            Func<string, bool> assemblyFileFilter = null)
         {
+            var filenameFilter = assemblyFileFilter ??
+                ((string x) => (assemblyFileExtensions ?? DefaultAssemblyFileExtensions).Any(fx => x.EndsWith(fx, StringComparison.OrdinalIgnoreCase)));
+
             var assemblies = Directory.EnumerateFiles(AppDomain.CurrentDomain.BaseDirectory)
-                .Select(LoadAsm)
+                .Where(filenameFilter)
+                .Select(LoadAssembly)
                 .Where(x => x != null)
                 .ToArray();
 
@@ -22,7 +29,7 @@ namespace AutoFacModuleScan.Host
             return builder;
         }
 
-        private static Assembly LoadAsm(string fileName)
+        private static Assembly LoadAssembly(string fileName)
         {
             try
             {
@@ -33,6 +40,5 @@ namespace AutoFacModuleScan.Host
                 return null;
             }
         }
-
     }
 }
